@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+  --color-pitch: #0a1628;
+  --color-pitch-light: #0f1f38;
+  --color-pitch-surface: #162544;
+  --color-pitch-border: #1e3a5f;
+  --color-gold: #f0c040;
+  --color-gold-dim: #b8941e;
+  --color-emerald-glow: #10b981;
+  --color-silver: #94a3b8;
+  --color-bronze: #cd7f32;
+  --color-goal: #f59e0b;
+  --font-display: 'Outfit', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+body {
+  font-family: var(--font-display);
+  background: var(--color-pitch);
+  color: #e2e8f0;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-pitch-border) transparent;
+  box-sizing: border-box;
+}
+
+/* 骰子点击动画 */
+@keyframes dice-roll {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(90deg) scale(1.2); }
+  50% { transform: rotate(180deg) scale(0.9); }
+  75% { transform: rotate(270deg) scale(1.15); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.dice-spin {
+  animation: dice-roll 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
