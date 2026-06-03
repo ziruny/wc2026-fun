@@ -1,0 +1,30 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv/
+.venv
+
+# Web / Node
+node_modules/
+web/dist/
+
+# Environment files (API keys, secrets)
+.env
+.env.local
+.env.*.local
+
+# macOS
+.DS_Store
+
+# Claude Code
+.claude/
+CLAUDE.md
+
+# Documents
+docx/
