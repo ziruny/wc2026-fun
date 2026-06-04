@@ -278,14 +278,14 @@ function calcMotivation(teamOvr, opponentOvr, ctx = {}) {
   const deficit = opponentOvr - teamOvr
   if (deficit > 10) boost += Math.min(0.10, (deficit - 10) * 0.005)
 
-  // 首战加成：只给弱队（强队不需要，且首战弱队更容易爆冷）
-  if (ctx.isFirstMatch && deficit > 5) boost += 0.08
+  // 首战加成：只给弱队（实力差 > 5 分时）
+  if (ctx.isFirstMatch && deficit > 5) boost += 0.05
 
   // 生死战：输了就出局
-  if (ctx.mustWin) boost += 0.12
+  if (ctx.mustWin) boost += 0.08
 
   // 淘汰赛基础斗志（每场都是生死战）
-  if (ctx.isKnockout) boost += 0.05
+  if (ctx.isKnockout) boost += 0.03
 
   return boost
 }
@@ -353,7 +353,7 @@ function simulateMatch(home, away, playerData, opts = {}) {
   // xG = base × exp(Δskill × c) × (1 + homeBoost) × (1 + motivation)
   const baseXg = 1.3
   const c = 0.04
-  const homeMult = HOST_COUNTRIES.has(home) ? 0.12 : (HOST_COUNTRIES.has(away) ? -0.06 : 0)
+  const homeMult = HOST_COUNTRIES.has(home) ? 0.08 : (HOST_COUNTRIES.has(away) ? -0.04 : 0)
 
   let hExpected = baseXg * Math.exp((h.attack - a.defense) * c) * (1 + homeMult) * (1 + hMotivation)
   let aExpected = baseXg * Math.exp((a.attack - h.defense) * c) * (1 - homeMult * 0.5) * (1 + aMotivation)
