@@ -273,10 +273,13 @@ function getTeamRating(teamName, playerData, fatigueLevel = 0) {
 
 function calcMotivation(teamOvr, opponentOvr, ctx = {}) {
   let boost = 0
+  // 弱队斗志：实力差距越大，斗志越高（乘法因子）
   const deficit = opponentOvr - teamOvr
-  if (deficit > 10) boost += Math.min(0.20, (deficit - 10) * 0.005)
-  if (ctx.isFirstMatch) boost += 0.10
-  if (ctx.mustWin) boost += 0.08
+  if (deficit > 10) boost += Math.min(0.10, (deficit - 10) * 0.005)
+  // 首场比赛
+  if (ctx.isFirstMatch) boost += 0.08
+  // 生死战
+  if (ctx.mustWin) boost += 0.15
   return boost
 }
 
@@ -339,10 +342,21 @@ function simulateMatch(home, away, playerData, opts = {}) {
     mustWin: matchContext.mustWinAway,
   })
 
-  const scale = 0.06
-  const base = 1.3
-  let hExpected = Math.max(0.2, Math.min(4.0, base + (h.attack - a.defense) * scale + homeBoost * 0.04 + hMotivation))
-  let aExpected = Math.max(0.2, Math.min(4.0, base + (a.attack - h.defense) * scale - homeBoost * 0.02 + aMotivation))
+  const baseXg = 1.3
+  const c = 0.02
+
+  // 主场乘数因子
+  const homeMult = HOST_COUNTRIES.has(home) ? 0.20 : (HOST_COUNTRIES.has(away) ? -0.10 : 0)
+  // 斗志乘数因子
+  const hMotMult = hMotivation  // 0 / 0.08 / 0.15
+  const aMotMult = aMotivation
+
+  // 指数模型：xG = base × exp(Δskill × c) × (1 + home) × (1 + motivation)
+  let hExpected = baseXg * Math.exp((h.attack - a.defense) * c) * (1 + homeMult) * (1 + hMotMult)
+  let aExpected = baseXg * Math.exp((a.attack - h.defense) * c) * (1 - homeMult * 0.5) * (1 + aMotMult)
+
+  hExpected = Math.max(0.15, Math.min(5.0, hExpected))
+  aExpected = Math.max(0.15, Math.min(5.0, aExpected))
 
   let hGoals = poissonSample(hExpected)
   let aGoals = poissonSample(aExpected)
