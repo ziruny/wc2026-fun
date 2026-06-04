@@ -273,13 +273,20 @@ function getTeamRating(teamName, playerData, fatigueLevel = 0) {
 
 function calcMotivation(teamOvr, opponentOvr, ctx = {}) {
   let boost = 0
-  // 弱队斗志：实力差距越大，斗志越高（乘法因子）
+
+  // 弱队斗志：实力差距越大斗志越高（乘法因子）
   const deficit = opponentOvr - teamOvr
   if (deficit > 10) boost += Math.min(0.10, (deficit - 10) * 0.005)
-  // 首场比赛
-  if (ctx.isFirstMatch) boost += 0.08
-  // 生死战
-  if (ctx.mustWin) boost += 0.15
+
+  // 首战加成：只给弱队（强队不需要，且首战弱队更容易爆冷）
+  if (ctx.isFirstMatch && deficit > 5) boost += 0.08
+
+  // 生死战：输了就出局
+  if (ctx.mustWin) boost += 0.12
+
+  // 淘汰赛基础斗志（每场都是生死战）
+  if (ctx.isKnockout) boost += 0.05
+
   return boost
 }
 
@@ -334,10 +341,12 @@ function simulateMatch(home, away, playerData, opts = {}) {
   const hMotivation = calcMotivation(h.overall, a.overall, {
     isFirstMatch: matchContext.isFirstMatchHome,
     mustWin: matchContext.mustWinHome,
+    isKnockout,
   })
   const aMotivation = calcMotivation(a.overall, h.overall, {
     isFirstMatch: matchContext.isFirstMatchAway,
     mustWin: matchContext.mustWinAway,
+    isKnockout,
   })
 
   // 指数平滑多因子模型
@@ -439,11 +448,37 @@ function simulateGroupStage(playerData) {
     for (const [md, pairings] of Object.entries(matchdays)) {
       for (const [i, j] of pairings) {
         const home = teams[i], away = teams[j]
+
+        // 首战判断
+        const isFirstMatchHome = standings[home].played === 0
+        const isFirstMatchAway = standings[away].played === 0
+
+        // 生死战判断：输了就出局
+        let mustWinHome = false, mustWinAway = false
+        if (+md === 2) {
+          // MD2: 0分的队输了直接出局
+          mustWinHome = standings[home].points === 0
+          mustWinAway = standings[away].points === 0
+        } else if (+md === 3) {
+          // MD3: 模拟"如果输了"的积分，判断是否出局
+          for (const [team, opp] of [[home, away], [away, home]]) {
+            const currentPts = standings[team].points
+            const ifLosePts = currentPts  // 不加分
+            // 如果输了还是第3或更差 → 不算生死战（第3可能出线）
+            // 如果输了铁定第4 → 生死战
+            const otherPts = teams.filter(t => t !== team && t !== opp).map(t => standings[t].points)
+            const maxOthersCouldGet = Math.max(...otherPts.map(p => p + 3)) // 其他队最多再拿3分
+            // 简化：0分队第3轮输了=出局；1分队第3轮输了大概率出局
+            if (currentPts <= 1) {
+              if (team === home) mustWinHome = true
+              else mustWinAway = true
+            }
+          }
+        }
+
         const ctx = {
-          isFirstMatchHome: standings[home].played === 0,
-          isFirstMatchAway: standings[away].played === 0,
-          mustWinHome: +md === 3 && standings[home].points <= 3,
-          mustWinAway: +md === 3 && standings[away].points <= 3,
+          isFirstMatchHome, isFirstMatchAway,
+          mustWinHome, mustWinAway,
         }
         const result = simulateMatch(home, away, playerData, { matchContext: ctx })
         result.match_id = `G${g}_${md}_${home}_vs_${away}`
