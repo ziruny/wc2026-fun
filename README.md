@@ -15,7 +15,7 @@
 ## 数据来源
 
 - **球员数据**：EA FC26 球员评分（六维属性：pace/shooting/passing/dribbling/defending/physic）
-- **大名单**：2026 世界杯 48 支球队官方大名单（来自维基百科）
+- **大名单**：2026 世界杯 48 支球队官方大名单（数据来自维基百科：https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_squads）
 - **对阵表**：FIFA 2026 官方 48 队赛制对阵表
 
 ## 技术栈
