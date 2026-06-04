@@ -331,8 +331,6 @@ function simulateMatch(home, away, playerData, opts = {}) {
   const h = getTeamRating(home, playerData, hFatigue)
   const a = getTeamRating(away, playerData, aFatigue)
 
-  let homeBoost = HOST_COUNTRIES.has(home) ? 7 : (HOST_COUNTRIES.has(away) ? -2 : 3)
-
   const hMotivation = calcMotivation(h.overall, a.overall, {
     isFirstMatch: matchContext.isFirstMatchHome,
     mustWin: matchContext.mustWinHome,
@@ -342,18 +340,14 @@ function simulateMatch(home, away, playerData, opts = {}) {
     mustWin: matchContext.mustWinAway,
   })
 
+  // 指数平滑多因子模型
+  // xG = base × exp(Δskill × c) × (1 + homeBoost) × (1 + motivation)
   const baseXg = 1.3
   const c = 0.02
-
-  // 主场乘数因子
   const homeMult = HOST_COUNTRIES.has(home) ? 0.20 : (HOST_COUNTRIES.has(away) ? -0.10 : 0)
-  // 斗志乘数因子
-  const hMotMult = hMotivation  // 0 / 0.08 / 0.15
-  const aMotMult = aMotivation
 
-  // 指数模型：xG = base × exp(Δskill × c) × (1 + home) × (1 + motivation)
-  let hExpected = baseXg * Math.exp((h.attack - a.defense) * c) * (1 + homeMult) * (1 + hMotMult)
-  let aExpected = baseXg * Math.exp((a.attack - h.defense) * c) * (1 - homeMult * 0.5) * (1 + aMotMult)
+  let hExpected = baseXg * Math.exp((h.attack - a.defense) * c) * (1 + homeMult) * (1 + hMotivation)
+  let aExpected = baseXg * Math.exp((a.attack - h.defense) * c) * (1 - homeMult * 0.5) * (1 + aMotivation)
 
   hExpected = Math.max(0.15, Math.min(5.0, hExpected))
   aExpected = Math.max(0.15, Math.min(5.0, aExpected))
