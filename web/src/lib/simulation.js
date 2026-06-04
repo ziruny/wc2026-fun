@@ -352,7 +352,7 @@ function simulateMatch(home, away, playerData, opts = {}) {
   // 指数平滑多因子模型
   // xG = base × exp(Δskill × c) × (1 + homeBoost) × (1 + motivation)
   const baseXg = 1.3
-  const c = 0.04
+  const c = 0.05
   const homeMult = HOST_COUNTRIES.has(home) ? 0.08 : (HOST_COUNTRIES.has(away) ? -0.04 : 0)
 
   let hExpected = baseXg * Math.exp((h.attack - a.defense) * c) * (1 + homeMult) * (1 + hMotivation)
