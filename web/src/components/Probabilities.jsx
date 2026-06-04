@@ -81,7 +81,7 @@ export default function Probabilities({ tournament, analytics, mc, seed }) {
           }`}
         >
           蒙特卡洛概率
-          <span className="ml-1.5 text-[10px] text-slate-500 font-mono">1000 次模拟</span>
+          <span className="ml-1.5 text-[10px] text-slate-500 font-mono">{mc?.n_simulations || 0} 次模拟</span>
         </button>
         <button
           onClick={() => setMode('current')}
